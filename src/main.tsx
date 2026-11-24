@@ -10,6 +10,7 @@ import { dashboardCalorieTarget, dayKey, dietStorageKey, readDiet, weekdayOf } f
 import { History } from './History';
 import { Workouts } from './Workouts';
 import { newPlan, readData, storageKey as workoutStorageKey, uid, type AppData, type Session, type WorkoutPlan } from './workout';
+import { previewDashboard, previewDiet, previewMode, previewWorkouts } from './preview';
 import './styles.css';
 import './diet.css';
 import './dashboard.css';
@@ -17,9 +18,9 @@ import './dashboard.css';
 type Route = 'home' | 'gym' | 'gym/plan' | 'gym/workouts' | 'diet' | 'diet/plans'
   | 'dashboard' | 'dashboard/diet-history' | 'dashboard/gym-history';
 
-const storageKey = workoutStorageKey;
-const dietKey = dietStorageKey;
-const dashboardKey = dashboardStorageKey;
+const storageKey = previewMode ? workoutStorageKey + '-preview' : workoutStorageKey;
+const dietKey = previewMode ? dietStorageKey + '-preview' : dietStorageKey;
+const dashboardKey = previewMode ? dashboardStorageKey + '-preview' : dashboardStorageKey;
 
 function locationRoute(): Route {
   const hash = window.location.hash.slice(1);
@@ -33,13 +34,13 @@ function locationRoute(): Route {
 }
 
 function loadDiet() {
-  try { return readDiet(dietKey); } catch { return null; }
+  try { return readDiet(dietKey, previewMode ? previewDiet : undefined); } catch { return null; }
 }
 
 function loadDashboard(): DashboardData | null {
   try {
     const saved = localStorage.getItem(dashboardKey);
-    if (!saved) return { weights: {}, goal: null };
+    if (!saved) return previewMode ? previewDashboard() : { weights: {}, goal: null };
     const data = JSON.parse(saved) as DashboardData;
     return data && data.weights && typeof data.weights === 'object' && (data.goal === null || data.goal) ? data : null;
   } catch { return null; }
@@ -72,8 +73,14 @@ function useLocalData<T>(key: string, read: () => T | null) {
   return { data, save, pending, reload: () => setData(read()) };
 }
 
+function PreviewNotice() {
+  return <div className="notice preview-notice"><span>Interactive preview · Demo data</span>
+    <a href={window.location.pathname}>Exit preview</a>
+  </div>;
+}
+
 function load() {
-  try { return readData(storageKey); } catch { return null; }
+  try { return readData(storageKey, previewMode ? previewWorkouts : undefined); } catch { return null; }
 }
 
 function LoadFailure({ title, onRetry }: { title: string; onRetry: () => void }) {
@@ -185,6 +192,7 @@ function App() {
   if (section === 'home') return <main className="fitness-home">
     <span className="brand-icon"><Activity size={26} strokeWidth={2.5} /></span>
     <h1>Fitness Log</h1>
+    {previewMode && <PreviewNotice />}
     <div className="fitness-areas">
       <button className="panel fitness-area" aria-label="Gym Log" onClick={() => navigate('gym')}>
         <span className="empty-icon"><Dumbbell size={25} /></span>
@@ -240,6 +248,7 @@ function App() {
       <div className="local-status"><HardDrive size={16} /> Stored on this device</div>
     </aside>
     <main id="main">
+      {previewMode && <PreviewNotice />}
       {section === 'diet' && (diet.data ? <Diet
         tab={route === 'diet/plans' ? 'plans' : 'current'} onTab={next => navigate(next === 'plans' ? 'diet/plans' : 'diet')}
         data={diet.data} today={today} persist={next => diet.save(next, true)} pending={diet.pending}

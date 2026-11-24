@@ -90,10 +90,10 @@ export function SetGrid({ sets, name, logging = false, validate = false, locked 
   </>;
 }
 
-export function Current({ data, plan, dayIndex, todayIndex, setDayIndex, onChange, onStart, saved, onHistory, training }: {
+export function Current({ data, plan, dayIndex, todayIndex, setDayIndex, onChange, onStart, saved, onHistory, training, onDashboard }: {
   data: AppData; plan: WorkoutPlan; dayIndex: number; todayIndex: number; setDayIndex: (index: number) => void; onChange: (data: AppData) => void;
   onStart: () => void; saved: boolean; onHistory: () => void;
-  training: { scheduled: number; logged: number };
+  training: { scheduled: number; logged: number }; onDashboard: () => void;
 }) {
   const [picker, setPicker] = useState<Picker | null>(null);
   const day = plan.days[dayIndex];
@@ -127,6 +127,7 @@ export function Current({ data, plan, dayIndex, todayIndex, setDayIndex, onChang
     {saved && <div className="notice" role="status"><Check size={18} /><span>Workout saved.</span><button className="text-button" onClick={onHistory}>View in History</button></div>}
     <div className="panel training-week">
       <span>{training.scheduled > 0 ? <><strong>{training.logged} of {training.scheduled}</strong> training days logged this week</> : 'No training days scheduled'}</span>
+      <button className="text-button" onClick={onDashboard}>View Dashboard</button>
     </div>
     {plan.draft && <div className="notice"><span>Workout in progress · {plan.draft.name}</span>
       <button className="text-button" onClick={onStart}>Resume workout</button></div>}

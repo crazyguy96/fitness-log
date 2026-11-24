@@ -1,0 +1,47 @@
+.fitness-areas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+.dashboard-stack { display: grid; gap: 14px; min-width: 0; }
+.dashboard-card { padding: 16px; min-width: 0; overflow-wrap: anywhere; }
+.dashboard-card .title-row svg { color: var(--green); }
+.dashboard-card .section-heading { flex-wrap: wrap; }
+.dashboard-card .text-button, .training-week .text-button { margin-top: 6px; }
+.weigh-in, .training-week { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-bottom: 14px; }
+.weigh-in p, .dashboard-card .title-row + p { margin-top: 6px; }
+.training-week { padding: 5px 14px; }
+.training-week .text-button { margin-top: 0; }
+.dashboard-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 12px 0; }
+.dashboard-metrics > div { padding: 9px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.dashboard-metrics dt, .dashboard-plan-links { color: var(--muted); font-size: .875rem; }
+.dashboard-metrics dd { color: var(--green); font-size: 1rem; font-weight: 700; margin: 3px 0 0; }
+.dashboard-plan-links { list-style: none; padding: 0; margin: 10px 0 0; }
+.dashboard-plan-links li { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.dashboard-plan-links li { flex-wrap: nowrap; border-top: 1px solid var(--line); padding: 7px 0; }
+.dashboard-plan-name { min-width: 0; flex: 1; }
+.dashboard-plan-links strong { color: var(--text); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dashboard-plan-links button { flex-shrink: 0; }
+.dashboard-plan-actions { display: flex; flex: none; gap: 6px; white-space: nowrap; }
+.dashboard-plan-actions .button { min-height: 44px; padding-inline: 9px; }
+.dashboard-plan-picker small { display: block; margin-top: 3px; }
+.dashboard-note { margin-top: 9px; font-size: .875rem; }
+.dashboard-count strong { color: var(--green); }
+.weight-plot { display: flex; height: 146px; gap: 10px; margin: 18px 8px 32px 0; }
+.weight-axis { display: flex; flex-direction: column; justify-content: space-between; color: var(--muted); font-size: .8rem; }
+.weight-goal-line { stroke-dasharray: 4 4; opacity: .65; }
+.weight-dot { position: absolute; width: 8px; height: 8px; border: 2px solid var(--green); background: var(--panel); border-radius: 50%; transform: translate(-50%, -50%); }
+.weight-legend { font-size: .8rem; }
+.weekly-planned-average { margin-top: 8px; font-size: .875rem; }
+.weekly-planned-average strong { color: var(--green); }
+.nutrition-week { width: 100%; border-collapse: collapse; font-size: .875rem; text-align: left; margin-top: 10px; }
+.nutrition-week th, .nutrition-week td { text-align: left; vertical-align: top; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+.nutrition-week thead { color: var(--muted); }
+.nutrition-week small { display: block; color: var(--muted); margin-top: 3px; }
+@media (max-width: 850px) {
+  .gym-nav[aria-label="Gym Log tabs"], .gym-nav[aria-label="Diet tabs"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 860px) {
+  .dashboard-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 620px) {
+  .fitness-areas { grid-template-columns: minmax(0, 1fr); }
+  .dashboard-card { padding: 13px; }
+}

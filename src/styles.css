@@ -274,12 +274,3 @@ dialog::backdrop { background: #000b; }
 .preview-notice { justify-content: space-between; padding-block: 8px; font-size: .9rem; }
 .preview-notice a { color: var(--green); padding: 6px 0; }
 .fitness-home .preview-notice { gap: 12px; margin-bottom: 0; }
-
-.fitness-home { min-height: 100vh; display: grid; align-content: center; justify-items: start; max-width: 870px; gap: 14px; }
-.fitness-home > .brand-icon { width: 47px; height: 47px; }
-.fitness-areas { margin-top: 8px; width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
-.fitness-area { min-height: 177px; padding: 18px; text-align: left; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
-.fitness-area:hover { border-color: var(--green); background: var(--tint); }
-.fitness-area .empty-icon { margin-bottom: 4px; width: 43px; height: 43px; }
-.fitness-area strong { font-size: 1.25rem; }
-.fitness-area > span:last-child { color: var(--muted); line-height: 1.5; }

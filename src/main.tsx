@@ -1,26 +1,63 @@
 import { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Activity, CalendarDays, ChartNoAxesCombined, Dumbbell, HardDrive, LayoutDashboard, Layers3 } from 'lucide-react';
+import { Activity, CalendarDays, ChartNoAxesCombined, Dumbbell, HardDrive, LayoutDashboard, Layers3, Utensils } from 'lucide-react';
 import { Current, Logging } from './Current';
 import { trainingWeek } from './dashboardData';
-import { dayKey, weekdayOf } from './nutrition';
+import { Diet } from './Diet';
+import { DietHistory } from './DietHistory';
+import { dayKey, dietStorageKey, readDiet, weekdayOf } from './nutrition';
 import { History } from './History';
 import { Workouts } from './Workouts';
 import { newPlan, readData, storageKey as workoutStorageKey, uid, type AppData, type Session, type WorkoutPlan } from './workout';
 import './styles.css';
+import './diet.css';
 
-type Route = 'home' | 'gym' | 'gym/plan' | 'gym/workouts' | 'dashboard/gym-history';
+type Route = 'home' | 'gym' | 'gym/plan' | 'gym/workouts' | 'diet' | 'diet/plans'
+  | 'dashboard/diet-history' | 'dashboard/gym-history';
 
 const storageKey = workoutStorageKey;
+const dietKey = dietStorageKey;
 
 function locationRoute(): Route {
   const hash = window.location.hash.slice(1);
   if (hash === 'gym/history') return 'dashboard/gym-history';
+  if (hash === 'diet/history') return 'dashboard/diet-history';
   switch (hash) {
-    case 'gym': case 'gym/plan': case 'gym/workouts':
-    case 'dashboard/gym-history': return hash;
+    case 'gym': case 'gym/plan': case 'gym/workouts': case 'diet': case 'diet/plans':
+    case 'dashboard/diet-history': case 'dashboard/gym-history': return hash;
     default: return 'home';
   }
+}
+
+function loadDiet() {
+  try { return readDiet(dietKey); } catch { return null; }
+}
+
+function useLocalData<T>(key: string, read: () => T | null) {
+  const [data, setData] = useState(read);
+  const [pending, setPending] = useState(false);
+
+  useEffect(() => {
+    function sync(event: StorageEvent) {
+      if (event.key === key && !pending) setData(read());
+    }
+    window.addEventListener('storage', sync);
+    return () => window.removeEventListener('storage', sync);
+  }, [key, pending, read]);
+
+  function save(next: T, keepEdits = false) {
+    try {
+      localStorage.setItem(key, JSON.stringify(next));
+      setData(next);
+      setPending(false);
+      return true;
+    } catch {
+      if (keepEdits) { setData(next); setPending(true); }
+      return false;
+    }
+  }
+
+  return { data, save, pending, reload: () => setData(read()) };
 }
 
 function load() {
@@ -38,6 +75,7 @@ function App() {
   const [data, setData] = useState<AppData | null>(load);
   const [route, setRoute] = useState<Route>(locationRoute);
   const section = route.split('/')[0];
+  const diet = useLocalData(dietKey, loadDiet);
   const [today, setToday] = useState(dayKey);
   const [selectedDay, setDayIndex] = useState<number | null>(null);
   const todayIndex = weekdayOf(today);
@@ -138,6 +176,11 @@ function App() {
         <strong>Gym Log</strong>
         <span>Plan workouts and log sets.</span>
       </button>
+      <button className="panel fitness-area" aria-label="Diet" onClick={() => navigate('diet')}>
+        <span className="empty-icon"><Utensils size={25} /></span>
+        <strong>Diet</strong>
+        <span>Plan meals and track nutrition.</span>
+      </button>
     </div>
   </main>;
 
@@ -146,7 +189,7 @@ function App() {
       <button className="brand brand-home" aria-label="Back to Fitness Log" onClick={() => navigate('home')}>
         <span className="brand-icon"><Activity size={23} strokeWidth={2.5} /></span><span>Fitness Log</span>
       </button>
-      <span className="section-caption">{section === 'gym' ? 'Gym Log' : 'History'}</span>
+      <span className="section-caption">{section === 'gym' ? 'Gym Log' : section === 'diet' ? 'Diet' : 'History'}</span>
       {section === 'gym' && <nav className="gym-nav" aria-label="Gym Log tabs">
         <button aria-current={route === 'gym' || route === 'gym/plan' ? 'page' : undefined} onClick={() => navigate('gym')}>
           <CalendarDays size={20} /><span>Current</span>
@@ -155,7 +198,18 @@ function App() {
           <Layers3 size={20} /><span>Workouts</span>
         </button>
       </nav>}
+      {section === 'diet' && <nav className="gym-nav" aria-label="Diet tabs">
+        <button aria-current={route === 'diet' ? 'page' : undefined} onClick={() => navigate('diet')}>
+          <CalendarDays size={20} /><span>Current</span>
+        </button>
+        <button aria-current={route === 'diet/plans' ? 'page' : undefined} onClick={() => navigate('diet/plans')}>
+          <Layers3 size={20} /><span>Diet plans</span>
+        </button>
+      </nav>}
       {section === 'dashboard' && <nav className="gym-nav" aria-label="Dashboard tabs">
+        <button aria-current={route === 'dashboard/diet-history' ? 'page' : undefined} onClick={() => navigate('dashboard/diet-history')}>
+          <Utensils size={20} /><span>Diet History</span>
+        </button>
         <button aria-current={route === 'dashboard/gym-history' ? 'page' : undefined} onClick={() => navigate('dashboard/gym-history', true)}>
           <ChartNoAxesCombined size={20} /><span>Gym History</span>
         </button>
@@ -163,7 +217,15 @@ function App() {
       <div className="local-status"><HardDrive size={16} /> Stored on this device</div>
     </aside>
     <main id="main">
-        {route === 'dashboard/gym-history' && (data
+        {section === 'diet' && (diet.data ? <Diet
+        tab={route === 'diet/plans' ? 'plans' : 'current'} onTab={next => navigate(next === 'plans' ? 'diet/plans' : 'diet')}
+        data={diet.data} today={today} persist={next => diet.save(next, true)} pending={diet.pending}
+        onRetry={() => diet.data && diet.save(diet.data, true)} goalCalories={null} onDashboard={() => navigate('dashboard/diet-history')} />
+        : <LoadFailure title="Couldn’t load Diet" onRetry={diet.reload} />)}
+      {route === 'dashboard/diet-history' && (diet.data
+        ? <DietHistory meals={diet.data.meals} plans={diet.data.plans} calorieTarget={null} onCurrent={() => navigate('diet')} />
+        : <LoadFailure title="Couldn’t load diet history" onRetry={diet.reload} />)}
+      {route === 'dashboard/gym-history' && (data
         ? <History sessions={data.sessions} plans={data.plans} savedId={savedId} onCurrent={() => navigate('gym')} />
         : <LoadFailure title="Couldn’t load workout history" onRetry={() => setData(load())} />)}
       {section === 'gym' && <>
